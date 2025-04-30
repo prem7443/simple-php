@@ -12,7 +12,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = $_POST["password"] ?? '';
 
     if ($username === $valid_username && $password === $valid_password) {
-        $welcome_msg = "Login successful! Welcome, $username.";
+        $welcome_msg = "Welcome from <strong>Prem</strong>!";
     } else {
         $login_error = "Invalid username or password.";
     }
@@ -25,41 +25,45 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <title>Static PHP Login</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background: #f3f4f6;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to right, #e0eafc, #cfdef3);
             display: flex;
             height: 100vh;
             align-items: center;
             justify-content: center;
+            margin: 0;
         }
 
         .login-container {
             background: #fff;
-            padding: 30px 40px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.15);
-            width: 300px;
+            padding: 35px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            width: 320px;
+            text-align: center;
         }
 
         h1 {
-            text-align: center;
-            margin-bottom: 25px;
             color: #333;
+            margin-bottom: 20px;
         }
 
         label {
-            font-weight: bold;
             display: block;
-            margin-bottom: 5px;
+            text-align: left;
+            margin: 10px 0 5px;
+            font-weight: bold;
+            color: #555;
         }
 
         input[type="text"],
         input[type="password"] {
             width: 100%;
-            padding: 8px;
+            padding: 10px;
             margin-bottom: 15px;
             border: 1px solid #ccc;
-            border-radius: 5px;
+            border-radius: 6px;
+            box-sizing: border-box;
         }
 
         input[type="submit"] {
@@ -69,8 +73,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             border: none;
             padding: 10px;
             font-size: 16px;
-            border-radius: 5px;
+            border-radius: 6px;
             cursor: pointer;
+            transition: background-color 0.3s ease;
         }
 
         input[type="submit"]:hover {
@@ -78,28 +83,39 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         .error {
-            color: red;
-            margin-bottom: 10px;
-            text-align: center;
+            color: #d8000c;
+            background-color: #ffdddd;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
         }
 
         .success {
-            color: green;
-            margin-bottom: 10px;
-            text-align: center;
+            color: #155724;
+            background-color: #d4edda;
+            padding: 15px;
+            border-radius: 6px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .success strong {
+            color: #0b3d91;
+            font-size: 18px;
         }
     </style>
 </head>
 <body>
     <div class="login-container">
         <h1>Login</h1>
-        
+
         <?php if ($login_error): ?>
             <div class="error"><?php echo $login_error; ?></div>
         <?php elseif ($welcome_msg): ?>
             <div class="success"><?php echo $welcome_msg; ?></div>
         <?php endif; ?>
 
+        <?php if (!$welcome_msg): ?>
         <form method="POST" action="">
             <label>Username:</label>
             <input type="text" name="username" required>
@@ -109,6 +125,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <input type="submit" value="Login">
         </form>
+        <?php endif; ?>
     </div>
 </body>
 </html>
