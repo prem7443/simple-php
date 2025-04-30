@@ -115,7 +115,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <div class="success"><?php echo $welcome_msg; ?></div>
         <?php endif; ?>
 
-        <?php if (!$welcome_msg): ?>
         <form method="POST" action="">
             <label>Username:</label>
             <input type="text" name="username" required>
@@ -125,7 +124,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <input type="submit" value="Login">
         </form>
-        <?php endif; ?>
     </div>
 </body>
 </html>
