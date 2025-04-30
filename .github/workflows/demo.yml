@@ -30,6 +30,6 @@ jobs:
           host: ${{ secrets.HOST_DNS }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cd home
-            sudo mv * /var/www/html
+          #script: |
+            #cd home
+            #sudo mv * /var/www/html
