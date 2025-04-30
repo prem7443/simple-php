@@ -12,7 +12,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = $_POST["password"] ?? '';
 
     if ($username === $valid_username && $password === $valid_password) {
-        $welcome_msg = "Welcome from <strong>Prem</strong>!";
+        $welcome_msg = "Namaste<strong>Prem</strong>!";
     } else {
         $login_error = "Invalid username or password.";
     }
