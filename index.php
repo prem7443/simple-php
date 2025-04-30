@@ -115,14 +115,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <div class="success"><?php echo $welcome_msg; ?></div>
         <?php endif; ?>
 
-        <form method="POST" action="">
-            <label>Username:</label>
-            <input type="text" name="username" required>
-
-            <label>Password:</label>
-            <input type="password" name="password" required>
-
-            <input type="submit" value="Login">
+        
         </form>
     </div>
 </body>
