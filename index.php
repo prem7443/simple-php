@@ -1,27 +1,37 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Register</title>
+    <title>Registration Form</title>
     <style>
         body { font-family: Arial; background: #f4f4f4; }
         form {
-            background: white; padding: 20px; width: 300px; margin: auto;
-            margin-top: 50px; border-radius: 10px;
+            background: white;
+            padding: 20px;
+            width: 300px;
+            margin: auto;
+            margin-top: 50px;
+            border-radius: 10px;
             box-shadow: 0 0 10px rgba(0,0,0,0.2);
         }
         input, textarea {
-            margin-bottom: 10px; padding: 8px; width: 100%;
+            margin-bottom: 10px;
+            padding: 8px;
+            width: 100%;
             box-sizing: border-box;
         }
         input[type=submit] {
-            background: #28a745; color: white; border: none; cursor: pointer;
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
 
 <?php
-$db = new SQLite3('users.db');
+// Internal "fake database" as an array
+$users = [];
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = $_POST['username'];
@@ -34,16 +44,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($pass !== $conf) {
         echo "<p style='color:red;text-align:center;'>Passwords do not match!</p>";
     } else {
-        $hashed = password_hash($pass, PASSWORD_DEFAULT);
-        $stmt = $db->prepare("INSERT INTO users (username, password, mobile, address, dob) VALUES (:username, :password, :mobile, :address, :dob)");
-        $stmt->bindValue(':username', $username);
-        $stmt->bindValue(':password', $hashed);
-        $stmt->bindValue(':mobile', $mobile);
-        $stmt->bindValue(':address', $address);
-        $stmt->bindValue(':dob', $dob);
-        $stmt->execute();
-
-        echo "<p style='color:green;text-align:center;'>Registered successfully!</p>";
+        // Save to internal array (simulating DB)
+        $users[] = [
+            'username' => $username,
+            'password' => $pass,
+            'mobile'   => $mobile,
+            'address'  => $address,
+            'dob'      => $dob
+        ];
+        echo "<p style='color:green;text-align:center;'>User registered successfully!</p>";
     }
 }
 ?>
