@@ -16,11 +16,11 @@ jobs:
       - name: Checkout the files
         uses: actions/checkout@v2
 
-      - name: Debug: Print the current directory
-        run: pwd
+      - name: Debug: Print the current directory locally
+        run: pwd  # This will show the local working directory on GitHub runner
 
-      - name: Debug: List files in /var/www/html
-        run: ls /var/www/html
+      - name: Debug: List files locally
+        run: ls -l  # This will list the files in the local directory
 
       - name: Deploy to EC2
         uses: easingthemes/ssh-deploy@main
@@ -29,6 +29,26 @@ jobs:
           REMOTE_HOST: ${{ secrets.HOST_DNS }}
           REMOTE_USER: ${{ secrets.USERNAME }}
           TARGET: ${{ secrets.TARGET_DIR }}
+
+      - name: Debug: SSH Debug: Print the current directory on EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST_DNS }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "Running pwd on EC2..."
+            pwd  # This will run pwd command on the EC2 instance
+
+      - name: Debug: SSH Debug: List files on EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST_DNS }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "Listing files in /var/www/html on EC2..."
+            ls -l /var/www/html
 
       - name: Executing remote ssh commands using ssh key
         uses: appleboy/ssh-action@master
