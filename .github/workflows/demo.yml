@@ -16,7 +16,7 @@ jobs:
       - name: Checkout the files
         uses: actions/checkout@v2
 
-      - name: Debug: Print the current directory locally
+      - name: Debug: #Print the current directory locally
         run: pwd  # This will show the local working directory on GitHub runner
 
       - name: Debug: List files locally
