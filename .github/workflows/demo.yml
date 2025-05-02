@@ -16,7 +16,7 @@ jobs:
       - name: Checkout the files
         uses: actions/checkout@v2
 
-      - name: Debug: #Print the current directory locally
+      - name: Debug: Print the current directory locally
         run: pwd  # This will show the local working directory on GitHub runner
 
       - name: Debug: List files locally
@@ -30,7 +30,7 @@ jobs:
           REMOTE_USER: ${{ secrets.USERNAME }}
           TARGET: ${{ secrets.TARGET_DIR }}
 
-      - name: Debug: SSH Debug: Print the current directory on EC2
+      - name: SSH Debug: Print the current directory on EC2
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST_DNS }}
@@ -40,7 +40,7 @@ jobs:
             echo "Running pwd on EC2..."
             pwd  # This will run pwd command on the EC2 instance
 
-      - name: Debug: SSH Debug: List files on EC2
+      - name: SSH Debug: List files on EC2
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST_DNS }}
