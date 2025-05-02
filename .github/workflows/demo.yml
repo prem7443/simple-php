@@ -1,12 +1,12 @@
 name: Push-to-EC2
 
-# Trigger deployment on push to main, dev, or staging branches
+# Trigger deployment on push to main, test, or test2 branches
 on:
   push:
     branches:
       - main
       - test
-      
+      - test2
 
 jobs:
   deploy:
@@ -32,5 +32,23 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd home
-            sudo mv * /var/www/html
+            # Ensure we're in the correct directory
+            cd /var/www/html
+
+            # Checkout the branch that triggered the workflow
+            git checkout ${{ github.ref }}
+            
+            # Conditional logic for copying files to the corresponding folders
+            if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+              # Main branch => test1 folder
+              sudo cp -r /var/www/html/* /var/www/html/test1/
+            elif [[ "${{ github.ref }}" == "refs/heads/test" ]]; then
+              # Test branch => test2 folder
+              sudo cp -r /var/www/html/* /var/www/html/test2/
+            elif [[ "${{ github.ref }}" == "refs/heads/test2" ]]; then
+              # Test2 branch => test3 folder
+              sudo cp -r /var/www/html/* /var/www/html/test3/
+            fi
+
+            # Restart Apache to apply the changes
+            sudo systemctl restart apache2
