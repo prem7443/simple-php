@@ -1,6 +1,5 @@
 name: Push-to-EC2
 
-# Trigger deployment on push to main, test, or test2 branches
 on:
   push:
     branches:
@@ -16,6 +15,12 @@ jobs:
     steps:
       - name: Checkout the files
         uses: actions/checkout@v2
+
+      - name: Debug: Print the current directory
+        run: pwd
+
+      - name: Debug: List files in /var/www/html
+        run: ls /var/www/html
 
       - name: Deploy to EC2
         uses: easingthemes/ssh-deploy@main
@@ -35,20 +40,28 @@ jobs:
             # Ensure we're in the correct directory
             cd /var/www/html
 
+            # Check the git status
+            git status
+
             # Checkout the branch that triggered the workflow
             git checkout ${{ github.ref }}
-            
+
+            # List files in /var/www/html before moving
+            ls /var/www/html
+
             # Conditional logic for copying files to the corresponding folders
             if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-              # Main branch => test1 folder
               sudo cp -r /var/www/html/* /var/www/html/test1/
             elif [[ "${{ github.ref }}" == "refs/heads/test" ]]; then
-              # Test branch => test2 folder
               sudo cp -r /var/www/html/* /var/www/html/test2/
             elif [[ "${{ github.ref }}" == "refs/heads/test2" ]]; then
-              # Test2 branch => test3 folder
               sudo cp -r /var/www/html/* /var/www/html/test3/
             fi
+
+            # List files in /var/www/html/test1, test2, and test3 after moving
+            ls /var/www/html/test1/
+            ls /var/www/html/test2/
+            ls /var/www/html/test3/
 
             # Restart Apache to apply the changes
             sudo systemctl restart apache2
