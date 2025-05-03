@@ -1,6 +1,6 @@
+
 name: Push-to-EC2
 
-# Trigger deployment only on push to main branch, test, and test2 branches
 on:
   push:
     branches:
@@ -10,39 +10,37 @@ on:
 
 jobs:
   deploy:
-    name: Deploy to EC2 on push to main, test, or test2 branch
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout the files
+      - name: Checkout Code
         uses: actions/checkout@v2
 
-      - name: Deploy to Server 1
-        uses: easingthemes/ssh-deploy@main
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
-          REMOTE_HOST: ${{ secrets.HOST_DNS }}
-          REMOTE_USER: ${{ secrets.USERNAME }}
-          TARGET: ${{ secrets.TARGET_DIR }}
+      # Branch-specific file copy to EC2
+      - name: Upload file to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HOST_DNS }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: |
+            ${{ github.ref == 'refs/heads/main' && 'test1' || '' }}
+            ${{ github.ref == 'refs/heads/test' && 'test2' || '' }}
+            ${{ github.ref == 'refs/heads/test2' && 'test3' || '' }}
+          target: /home/ubuntu/
 
-      - name: Executing remote ssh commands using ssh key
+      - name: SSH and move to proper directory
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST_DNS }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Conditional logic for copying files based on the branch
             if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-              sudo cp -r /var/www/html/* /var/www/html/test1/
+              sudo mv /home/ubuntu/test1 /var/www/html/test1
             elif [[ "${{ github.ref }}" == "refs/heads/test" ]]; then
-              sudo cp -r /var/www/html/* /var/www/html/test2/
+              sudo mv /home/ubuntu/test2 /var/www/html/test2
             elif [[ "${{ github.ref }}" == "refs/heads/test2" ]]; then
-              sudo cp -r /var/www/html/* /var/www/html/test3/
+              sudo mv /home/ubuntu/test3 /var/www/html/test3
             fi
-
-            # Move files from the home directory to /var/www/html (if necessary)
-            sudo mv /home/* /var/www/html
-
-            # Restart Apache to apply changes
             sudo systemctl restart apache2
