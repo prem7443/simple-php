@@ -18,12 +18,13 @@ jobs:
       - name: Set target folder based on branch
         id: vars
         run: |
-          if [[ "${GITHUB_REF##*/}" == "main" ]]; then
-            echo "FOLDER=test1" >> $GITHUB_OUTPUT
-          elif [[ "${GITHUB_REF##*/}" == "test" ]]; then
-            echo "FOLDER=test2" >> $GITHUB_OUTPUT
-          elif [[ "${GITHUB_REF##*/}" == "test2" ]]; then
-            echo "FOLDER=test3" >> $GITHUB_OUTPUT
+          BRANCH="${GITHUB_REF##*/}"
+          if [[ "$BRANCH" == "main" ]]; then
+            echo "FOLDER=test1" >> "$GITHUB_OUTPUT"
+          elif [[ "$BRANCH" == "test" ]]; then
+            echo "FOLDER=test2" >> "$GITHUB_OUTPUT"
+          elif [[ "$BRANCH" == "test2" ]]; then
+            echo "FOLDER=test3" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Upload folder to EC2
@@ -32,8 +33,8 @@ jobs:
           host: ${{ secrets.HOST_DNS }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: ${{ steps.vars.outputs.FOLDER }}
-          target: /home/ubuntu/
+          source: "."  # Upload all repo content
+          target: /home/ubuntu/${{ steps.vars.outputs.FOLDER }}
 
       - name: Move folder to Apache root and restart service
         uses: appleboy/ssh-action@master
