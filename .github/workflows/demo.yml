@@ -1,16 +1,15 @@
+
 name: Push-to-EC2
 
-# Trigger deployment only on push to main branch, test, and test2 branches
+# Trigger deployment only on push to main branch
 on:
   push:
     branches:
       - main
-      - test
-      - test2
 
 jobs:
   deploy:
-    name: Deploy to EC2 on push to main, test, or test2 branch
+    name: Deploy to EC2 on master branch push
     runs-on: ubuntu-latest
 
     steps:
@@ -32,17 +31,6 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Conditional logic for copying files based on the branch
-            if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-              sudo cp -r /var/www/html/* /var/www/html/test1/
-            elif [[ "${{ github.ref }}" == "refs/heads/test" ]]; then
-              sudo cp -r /var/www/html/* /var/www/html/test2/
-            elif [[ "${{ github.ref }}" == "refs/heads/test2" ]]; then
-              sudo cp -r /var/www/html/* /var/www/html/test3/
-            fi
-
-            # Move files from the home directory to /var/www/html (if necessary)
-            sudo mv /home/* /var/www/html
-
-            # Restart Apache to apply changes
-       
+            
+            cd home
+            sudo mv * /var/www/html
