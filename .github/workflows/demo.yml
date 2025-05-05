@@ -52,9 +52,7 @@ jobs:
               sudo git clean -fd
               sudo git pull origin "$BRANCH"
               echo "✅ Deployment to $TARGET_DIR completed."
-            else
-              echo "❌ Error: $TARGET_DIR is not a Git repository or doesn't exist."
-              echo "💡 Please manually clone the repo using:"
+            
            
               exit 1
             fi
