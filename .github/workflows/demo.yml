@@ -9,17 +9,17 @@ on:
 
 jobs:
   deploy:
-    name: Deploy to EC2 (Only Pull)
+    name: Deploy to EC2 (Pull Only)
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout the workflow repo (local)
+      - name: Checkout repository code (to validate workflow)
         uses: actions/checkout@v2
 
-      - name: Set current branch name
+      - name: Set current branch name for deployment
         run: echo "BRANCH=${GITHUB_REF##*/}" >> $GITHUB_ENV
 
-      - name: SSH into EC2 and pull latest changes
+      - name: SSH into EC2 and pull latest changes for the branch
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST_DNS }}
@@ -27,32 +27,52 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           envs: BRANCH
           script: |
-            echo "Deploying branch: $BRANCH"
+            # Helper function to log and echo messages clearly
+            log() {
+              echo ">>> $1"
+            }
+
+            # Start by logging the current branch and target directory
+            log "Starting deployment for branch: $BRANCH"
+
+            # Define the target directory based on the branch name
+            case "$BRANCH" in
+              "main")
+                TARGET_DIR="test1"
+                ;;
+              "test1")
+                TARGET_DIR="test2"
+                ;;
+              "test2")
+                TARGET_DIR="test3"
+                ;;
+              *)
+                log "ERROR: Unsupported branch '$BRANCH'. Deployment aborted."
+                exit 1
+                ;;
+            esac
+
+            log "Target directory for branch $BRANCH is: $TARGET_DIR"
+            
+            # Go to Apache's root directory
             cd /var/www/html
 
-            # Map branch to target directory
-            if [ "$BRANCH" = "main" ]; then
-              TARGET_DIR="test1"
-            elif [ "$BRANCH" = "test1" ]; then
-              TARGET_DIR="test2"
-            elif [ "$BRANCH" = "test2" ]; then
-              TARGET_DIR="test3"
-            else
-              echo "No deployment target configured for branch: $BRANCH"
-              exit 1
-            fi
-
-            echo "Target directory: $TARGET_DIR"
-
-            # Pull only if target is a git repo
+            # Check if the directory exists and is a git repository
             if [ -d "$TARGET_DIR/.git" ]; then
+              log "Directory $TARGET_DIR is a valid Git repository. Pulling the latest changes..."
               cd "$TARGET_DIR"
-              echo "Pulling latest code into $TARGET_DIR..."
+              
+              # Reset any local changes, clean untracked files, and pull from the remote branch
               sudo git reset --hard
               sudo git clean -fd
               sudo git pull origin "$BRANCH"
-              echo "✅ Deployment to $TARGET_DIR completed."
-            
-           
+              
+              log "Deployment to $TARGET_DIR completed successfully."
+            else
+              log "ERROR: Directory $TARGET_DIR is not a valid Git repository."
+              log "Please clone the repository manually by running the following command on the EC2 server:
               exit 1
             fi
+
+      - name: Complete the deployment
+        run: echo "Deployment workflow completed successfully."
