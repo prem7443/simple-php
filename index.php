@@ -1,6 +1,6 @@
 <?php
 echo "Hello, World!";
-echo "Hello, premc!";
+echo "Hello, prem!";
 
 
 ?>
