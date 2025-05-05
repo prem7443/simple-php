@@ -1,0 +1,66 @@
+name: Push-to-EC2
+
+on:
+  push:
+    branches:
+      - main
+      - test1
+      - test2
+
+jobs:
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set current branch name
+        run: echo "BRANCH=${GITHUB_REF##*/}" >> $GITHUB_ENV
+
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST_DNS }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: BRANCH
+          script: |
+            echo "Deploying branch: $BRANCH"
+            
+            # Update system and install Apache/Git
+            sudo apt-get -y update
+            sudo apt-get install -y apache2 git
+
+            # Start and enable Apache
+            sudo systemctl start apache2
+            sudo systemctl enable apache2
+
+            # Go to web root
+            cd /var/www/html
+
+            # Determine target directory based on branch
+            if [ "$BRANCH" = "main" ]; then
+              TARGET_DIR="test1"
+            elif [ "$BRANCH" = "test1" ]; then
+              TARGET_DIR="test2"
+            elif [ "$BRANCH" = "test2" ]; then
+              TARGET_DIR="test3"
+            else
+              echo "No matching deployment directory for branch: $BRANCH"
+              exit 0
+            fi
+
+            # Clean up existing directory
+            sudo rm -rf "$TARGET_DIR"
+
+            # Clone repo into temp folder
+            sudo git clone --branch "$BRANCH" https://github.com/prem7443/simple-php.git temp-repo
+
+            # Move contents into target directory
+            sudo mkdir -p "$TARGET_DIR"
+            sudo mv temp-repo/* temp-repo/.* "$TARGET_DIR"/ 2>/dev/null || true
+            sudo rm -rf temp-repo
+
+            echo "Deployment complete to $TARGET_DIR"
