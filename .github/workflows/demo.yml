@@ -18,7 +18,7 @@ jobs:
 
       - name: Set Branch Name Output
         id: branch_name
-        run: echo "BRANCH_NAME=$(echo $GITHUB_REF | sed 's/refs\/heads\///')" >> $GITHUB_ENV
+        run: echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
 
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@master
@@ -27,8 +27,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Ensure we have the correct branch name
-            echo "Deploying branch: $BRANCH_NAME"
+            echo "Deploying branch: $BRANCH_NAME"  # Debugging output
 
             # Go to Apache's root directory
             cd /var/www/html
