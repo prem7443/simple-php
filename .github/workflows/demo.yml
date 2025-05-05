@@ -9,17 +9,17 @@ on:
 
 jobs:
   deploy:
-    name: Deploy to EC2
+    name: Deploy to EC2 (Only Pull)
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout the files
+      - name: Checkout the workflow repo (local)
         uses: actions/checkout@v2
 
       - name: Set current branch name
         run: echo "BRANCH=${GITHUB_REF##*/}" >> $GITHUB_ENV
 
-      - name: Deploy via SSH
+      - name: SSH into EC2 and pull latest changes
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST_DNS }}
@@ -28,17 +28,9 @@ jobs:
           envs: BRANCH
           script: |
             echo "Deploying branch: $BRANCH"
-
-            # Install necessary software
-            sudo apt-get -y update
-            sudo apt-get install -y apache2 git
-
-            sudo systemctl start apache2
-            sudo systemctl enable apache2
-
             cd /var/www/html
 
-            # Set deployment target folder based on branch
+            # Map branch to target directory
             if [ "$BRANCH" = "main" ]; then
               TARGET_DIR="test1"
             elif [ "$BRANCH" = "test1" ]; then
@@ -46,15 +38,23 @@ jobs:
             elif [ "$BRANCH" = "test2" ]; then
               TARGET_DIR="test3"
             else
-              echo "No deployment target defined for branch: $BRANCH"
-              exit 0
+              echo "No deployment target configured for branch: $BRANCH"
+              exit 1
             fi
 
-            # Remove old deployment and fetch fresh
-            sudo rm -rf "$TARGET_DIR"
-            sudo git clone --branch "$BRANCH" https://github.com/prem7443/simple-php.git temp-repo
-            sudo mkdir -p "$TARGET_DIR"
-            sudo mv temp-repo/* temp-repo/.* "$TARGET_DIR"/ 2>/dev/null || true
-            sudo rm -rf temp-repo
+            echo "Target directory: $TARGET_DIR"
 
-            echo "Deployment to $TARGET_DIR complete."
+            # Pull only if target is a git repo
+            if [ -d "$TARGET_DIR/.git" ]; then
+              cd "$TARGET_DIR"
+              echo "Pulling latest code into $TARGET_DIR..."
+              sudo git reset --hard
+              sudo git clean -fd
+              sudo git pull origin "$BRANCH"
+              echo "✅ Deployment to $TARGET_DIR completed."
+            else
+              echo "❌ Error: $TARGET_DIR is not a Git repository or doesn't exist."
+              echo "💡 Please manually clone the repo using:"
+           
+              exit 1
+            fi
