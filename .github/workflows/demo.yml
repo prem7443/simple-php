@@ -9,7 +9,7 @@ on:
 
 jobs:
   deploy:
-    name: Deploy to EC2
+    name: Deploy to EC2 on push to main/test1/test2 branch
     runs-on: ubuntu-latest
 
     steps:
@@ -23,35 +23,22 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Capture the current branch name from GitHub Actions
-            BRANCH_NAME="${{ github.ref_name }}"
-            echo ">>> Starting deployment for branch: $BRANCH_NAME"
 
-            # Define target directory based on branch name
-            if [ "$BRANCH_NAME" = "main" ]; then
-              TARGET_DIR="/var/www/html/test1"
-            elif [ "$BRANCH_NAME" = "test1" ]; then
-              TARGET_DIR="/var/www/html/test2"
-            elif [ "$BRANCH_NAME" = "test2" ]; then
-              TARGET_DIR="/var/www/html/test3"
+            # Go to Apache's root directory
+            cd /var/www/html
+
+            # Check which branch was pushed and deploy accordingly
+            if [ "$GITHUB_REF_NAME" = "main" ]; then
+              TARGET_DIR="test1"
+              sudo rm -rf $TARGET_DIR
+              sudo git clone https://github.com/prem7443/simple-php.git $TARGET_DIR
+            elif [ "$GITHUB_REF_NAME" = "test1" ]; then
+              TARGET_DIR="test2"
+              sudo rm -rf $TARGET_DIR
+              sudo git clone https://github.com/prem7443/simple-php.git $TARGET_DIR
+            elif [ "$GITHUB_REF_NAME" = "test2" ]; then
+              TARGET_DIR="test3"
+              sudo rm -rf $TARGET_DIR
             else
-              echo "ERROR: Unknown branch $BRANCH_NAME"
-              exit 1
-            fi
-
-            echo ">>> Target directory for branch $BRANCH_NAME is: $TARGET_DIR"
-
-            # Go to the target directory and check if it's a Git repository
-            if [ -d "$TARGET_DIR/.git" ]; then
-              echo ">>> Pulling the latest code from GitHub into $TARGET_DIR"
-              cd $TARGET_DIR
-              sudo git reset --hard
-              sudo git clean -fd
-              sudo git pull origin "$BRANCH_NAME"
-              echo ">>> Deployment for $BRANCH_NAME completed successfully."
-            else
-              echo "ERROR: Directory $TARGET_DIR is not a valid Git repository."
-              echo "Please initialize the repo manually with the following command:"
-              
-              exit 1
+              echo "No deployment action for branch: $GITHUB_REF_NAME"
             fi
