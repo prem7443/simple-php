@@ -16,6 +16,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Set Branch Name Output
+        id: branch_name
+        run: echo "BRANCH_NAME=$(echo $GITHUB_REF | sed 's/refs\/heads\///')" >> $GITHUB_ENV
+
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@master
         with:
@@ -23,18 +27,8 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Debugging output for GitHub Ref and Branch Name
-            echo "GITHUB_REF: $GITHUB_REF"
-            echo "GITHUB_REF_NAME: $GITHUB_REF_NAME"
-            
-            # If GITHUB_REF_NAME is empty, we default to extracting it manually from GITHUB_REF
-            if [ -z "$GITHUB_REF_NAME" ]; then
-              BRANCH_NAME=$(echo $GITHUB_REF | sed 's/refs\/heads\///')
-            else
-              BRANCH_NAME="$GITHUB_REF_NAME"
-            fi
-
-            echo "Branch Name: $BRANCH_NAME"
+            # Ensure we have the correct branch name
+            echo "Deploying branch: $BRANCH_NAME"
 
             # Go to Apache's root directory
             cd /var/www/html
