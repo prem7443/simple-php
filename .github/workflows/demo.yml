@@ -1,3 +1,4 @@
+
 name: Push-to-EC2
 
 on:
@@ -16,51 +17,42 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set current branch name
-        run: echo "BRANCH=${GITHUB_REF##*/}" >> $GITHUB_ENV
-
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST_DNS }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: BRANCH
           script: |
-            echo "Deploying branch: $BRANCH"
-            
-            # Update system and install Apache/Git
-            sudo apt-get -y update
-            sudo apt-get install -y apache2 git
+            # Capture the current branch name from GitHub Actions
+            BRANCH_NAME="${{ github.ref_name }}"
+            echo ">>> Starting deployment for branch: $BRANCH_NAME"
 
-            # Start and enable Apache
-            sudo systemctl start apache2
-            sudo systemctl enable apache2
-
-            # Go to web root
-            cd /var/www/html
-
-            # Determine target directory based on branch
-            if [ "$BRANCH" = "main" ]; then
-              TARGET_DIR="test1"
-            elif [ "$BRANCH" = "test1" ]; then
-              TARGET_DIR="test2"
-            elif [ "$BRANCH" = "test2" ]; then
-              TARGET_DIR="test3"
+            # Define target directory based on branch name
+            if [ "$BRANCH_NAME" = "main" ]; then
+              TARGET_DIR="/var/www/html/test1"
+            elif [ "$BRANCH_NAME" = "test1" ]; then
+              TARGET_DIR="/var/www/html/test2"
+            elif [ "$BRANCH_NAME" = "test2" ]; then
+              TARGET_DIR="/var/www/html/test3"
             else
-              echo "No matching deployment directory for branch: $BRANCH"
-              exit 0
+              echo "ERROR: Unknown branch $BRANCH_NAME"
+              exit 1
             fi
 
-            # Clean up existing directory
-            sudo rm -rf "$TARGET_DIR"
+            echo ">>> Target directory for branch $BRANCH_NAME is: $TARGET_DIR"
 
-            # Clone repo into temp folder
-            sudo git clone --branch "$BRANCH" https://github.com/prem7443/simple-php.git temp-repo
-
-            # Move contents into target directory
-            sudo mkdir -p "$TARGET_DIR"
-            sudo mv temp-repo/* temp-repo/.* "$TARGET_DIR"/ 2>/dev/null || true
-            sudo rm -rf temp-repo
-
-            echo "Deployment complete to $TARGET_DIR"
+            # Go to the target directory and check if it's a Git repository
+            if [ -d "$TARGET_DIR/.git" ]; then
+              echo ">>> Pulling the latest code from GitHub into $TARGET_DIR"
+              cd $TARGET_DIR
+              sudo git reset --hard
+              sudo git clean -fd
+              sudo git pull origin "$BRANCH_NAME"
+              echo ">>> Deployment for $BRANCH_NAME completed successfully."
+            else
+              echo "ERROR: Directory $TARGET_DIR is not a valid Git repository."
+              echo "Please initialize the repo manually with the following command:"
+              
+              exit 1
+            fi
