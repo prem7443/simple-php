@@ -30,11 +30,15 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            sudo apt-get -y update
-            sudo apt-get install -y apache2
-            sudo systemctl start apache2
-            sudo systemctl enable apache2
-            cd home
-            sudo mkdir /var/www/html/test1 /var/www/html/test2 /var/www/html/test3
-
-            sudo mv * /var/www/html/test1 test2 test3
+              sudo apt-get -y update
+              sudo apt-get install -y apache2
+              sudo systemctl start apache2
+              sudo systemctl enable apache2
+            
+              # Navigate to the right place
+              cd /var/www/html
+            
+              # Create the directories
+              sudo mkdir -p test1 test2 test3
+            
+             
