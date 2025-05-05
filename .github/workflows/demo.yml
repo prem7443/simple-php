@@ -42,7 +42,7 @@ jobs:
               # Remove the existing test1 folder and clone the repo for 'main' branch
               sudo rm -rf test1
               sudo git clone https://github.com/prem7443/simple-php.git test1
-            elif [ "$BRANCH_NAME" = "test" ]; then
+            elif [ "$BRANCH_NAME" = "test1" ]; then
               # Remove the existing test2 folder and clone the repo for 'test' branch
               sudo rm -rf test2
               sudo git clone https://github.com/prem7443/simple-php.git test2
