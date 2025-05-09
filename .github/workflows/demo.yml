@@ -1,12 +1,7 @@
-
 name: Push-to-EC2
 
 on:
-  push:
-    branches:
-      
-      - test1
-      - test2
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -53,6 +48,5 @@ jobs:
             else
               echo "ERROR: Directory $TARGET_DIR is not a valid Git repository."
               echo "Please initialize the repo manually with the following command:"
-              
               exit 1
             fi
