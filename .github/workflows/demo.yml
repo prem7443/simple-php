@@ -24,9 +24,7 @@ jobs:
             echo ">>> Starting deployment for branch: $BRANCH_NAME"
 
             # Define target directory based on branch name
-            if [ "$BRANCH_NAME" = "main" ]; then
-              TARGET_DIR="/var/www/html/test1"
-            elif [ "$BRANCH_NAME" = "test1" ]; then
+              if [ "$BRANCH_NAME" = "test1" ]; then
               TARGET_DIR="/var/www/html/test2"
             elif [ "$BRANCH_NAME" = "test2" ]; then
               TARGET_DIR="/var/www/html/test3"
