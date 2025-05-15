@@ -20,9 +20,8 @@ jobs:
           if ! git merge-base --is-ancestor origin/${{ github.event.pull_request.base.ref }} HEAD; then
             echo "PR has conflicts"
             gh pr close "${{ github.event.pull_request.number }}" \
-              --comment "This pull request has merge conflicts with `${{ github.event.pull_request.base.ref }}`. Please rebase and resolve conflicts before creating a new PR."
+              --comment "This pull request has merge conflicts with \`${{ github.event.pull_request.base.ref }}\`. Please rebase and resolve conflicts before creating a new PR."
           else
             echo "No conflicts"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
- 
