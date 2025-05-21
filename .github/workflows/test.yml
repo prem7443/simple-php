@@ -1,0 +1,74 @@
+# .github/workflows/ssh-deploy.yml
+name: Manual Deployment To Dev Environment
+ 
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        type: choice
+        description: Environment to deploy
+        options:
+        - Dev
+        - Alpha
+
+
+ 
+jobs:
+  deploy:
+    #if: contains(fromJson('["username"]'), github.actor)
+    runs-on: Linux
+ 
+    steps:
+    - id: vars
+      run: |
+        case "${{ github.event.inputs.name }}" in
+          Dev)
+            echo "host=${{ secrets.DEV_SSH_HOST }}"       >> $GITHUB_OUTPUT
+            echo "user=${{ secrets.DEV_SSH_USER }}"   >> $GITHUB_OUTPUT
+            echo "path=${{ vars.DEV1_APP_PATH }}"        >> $GITHUB_OUTPUT ;;
+          Alpha)
+            echo "host=${{ secrets.DEV_SSH_HOST }}"     >> $GITHUB_OUTPUT
+            echo "user=${{ secrets.DEV_SSH_USER }}" >> $GITHUB_OUTPUT
+            echo "path=${{ vars.DEV_APP_PATH }}"      >> $GITHUB_OUTPUT ;;
+        esac
+ 
+    - name: Deploy to Environment
+      run: |
+        echo "Starting deployment to ${{ github.event.inputs.name }} environment..."
+ 
+        ssh -o StrictHostKeyChecking=no ${{ steps.vars.outputs.user }}@${{ steps.vars.outputs.host }} 
+          cd "${{ steps.vars.outputs.path }}"
+          if [ $? -eq 0 ]; then
+          echo "Successfully changed to app directory"
+        else
+          echo "Failed to change directory"
+          exit 1
+ 
+          git reset --hard
+          if [ $? -ne 0 ]; then
+            echo "git reset failed"
+            exit 1
+          fi
+ 
+          git fetch -v
+          if [ $? -ne 0 ]; then
+            echo "git fetch failed"
+            exit 1
+          fi
+ 
+          git checkout ${{ github.ref_name }}
+          if [ $? -ne 0 ]; then
+            echo "git checkout failed"
+            exit 1
+          fi
+ 
+          git pull origin ${{ github.ref_name }}
+          if [ $? -ne 0 ]; then
+            echo "git pull failed"
+            exit 1
+          fi
+ 
+          echo "Deployment successful!"
+        
+ 
+ 
