@@ -1,20 +1,5 @@
-# .github/workflows/ssh-deploy.yml
 name: Manual Deployment To Dev Environment
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5 # cancels job if it runs longer than 10 minutes
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      # other steps
-
- 
 on:
   workflow_dispatch:
     inputs:
@@ -22,67 +7,76 @@ on:
         type: choice
         description: Environment to deploy
         options:
-        - Dev
-        - Alpha
+          - Dev
+          - Alpha
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
- 
 jobs:
-  deploy:
-    #if: contains(fromJson('["username"]'), github.actor)
-    runs-on: ubuntu
- 
+
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5  # cancels job if it runs longer than 5 minutes
     steps:
-    - id: vars
-      run: |
-        case "${{ github.event.inputs.name }}" in
-          Dev)
-            echo "host=${{ secrets.DEV_SSH_HOST }}"       >> $GITHUB_OUTPUT
-            echo "user=${{ secrets.DEV_SSH_USER }}"   >> $GITHUB_OUTPUT
-            echo "path=${{ vars.DEV1_APP_PATH }}"        >> $GITHUB_OUTPUT ;;
-          Alpha)
-            echo "host=${{ secrets.DEV_SSH_HOST }}"     >> $GITHUB_OUTPUT
-            echo "user=${{ secrets.DEV_SSH_USER }}" >> $GITHUB_OUTPUT
-            echo "path=${{ vars.DEV_APP_PATH }}"      >> $GITHUB_OUTPUT ;;
-        esac
- 
-    - name: Deploy to Environment
-      run: |
-        echo "Starting deployment to ${{ github.event.inputs.name }} environment..."
- 
-        ssh -o StrictHostKeyChecking=no ${{ steps.vars.outputs.user }}@${{ steps.vars.outputs.host }} 
-          cd "${{ steps.vars.outputs.path }}"
-          if [ $? -eq 0 ]; then
-          echo "Successfully changed to app directory"
-        else
-          echo "Failed to change directory"
-          exit 1
- 
-          git reset --hard
-          if [ $? -ne 0 ]; then
-            echo "git reset failed"
-            exit 1
-          fi
- 
-          git fetch -v
-          if [ $? -ne 0 ]; then
-            echo "git fetch failed"
-            exit 1
-          fi
- 
-          git checkout ${{ github.ref_name }}
-          if [ $? -ne 0 ]; then
-            echo "git checkout failed"
-            exit 1
-          fi
- 
-          git pull origin ${{ github.ref_name }}
-          if [ $? -ne 0 ]; then
-            echo "git pull failed"
-            exit 1
-          fi
- 
-          echo "Deployment successful!"
-        
- 
- 
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # other build steps here, e.g., build/test commands
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build  # Optional: this makes deploy wait for build to complete
+    steps:
+      - id: vars
+        run: |
+          case "${{ github.event.inputs.name }}" in
+            Dev)
+              echo "host=${{ secrets.DEV_SSH_HOST }}" >> $GITHUB_OUTPUT
+              echo "user=${{ secrets.DEV_SSH_USER }}" >> $GITHUB_OUTPUT
+              echo "path=${{ vars.DEV1_APP_PATH }}" >> $GITHUB_OUTPUT
+              ;;
+            Alpha)
+              echo "host=${{ secrets.DEV_SSH_HOST }}" >> $GITHUB_OUTPUT
+              echo "user=${{ secrets.DEV_SSH_USER }}" >> $GITHUB_OUTPUT
+              echo "path=${{ vars.DEV_APP_PATH }}" >> $GITHUB_OUTPUT
+              ;;
+          esac
+
+      - name: Deploy to Environment
+        run: |
+          echo "Starting deployment to ${{ github.event.inputs.name }} environment..."
+          ssh -o StrictHostKeyChecking=no ${{ steps.vars.outputs.user }}@${{ steps.vars.outputs.host }} << EOF
+            cd "${{ steps.vars.outputs.path }}"
+            if [ $? -ne 0 ]; then
+              echo "Failed to change directory"
+              exit 1
+            fi
+
+            git reset --hard
+            if [ $? -ne 0 ]; then
+              echo "git reset failed"
+              exit 1
+            fi
+
+            git fetch -v
+            if [ $? -ne 0 ]; then
+              echo "git fetch failed"
+              exit 1
+            fi
+
+            git checkout ${{ github.ref_name }}
+            if [ $? -ne 0 ]; then
+              echo "git checkout failed"
+              exit 1
+            fi
+
+            git pull origin ${{ github.ref_name }}
+            if [ $? -ne 0 ]; then
+              echo "git pull failed"
+              exit 1
+            fi
+
+            echo "Deployment successful!"
+          EOF
