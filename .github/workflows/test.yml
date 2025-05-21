@@ -1,11 +1,21 @@
-name: Test Workflow
+name: Manual Test Workflow
 
 on:
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Select environment to deploy'
+        required: true
+        default: 'Dev'
+        type: choice
+        options:
+          - Dev
+          - Alpha
 
 jobs:
-  echo:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Say Hello
-        run: echo "Hello from test branch!"
+      - name: Show selected environment
+        run: echo "Deploying to environment:${{ github.event.inputs.environment }}"
+
