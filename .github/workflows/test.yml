@@ -17,7 +17,7 @@ concurrency:
 jobs:
 
   build:
-    runs-on: ubuntu-latest
+    runs-on: Linux
     timeout-minutes: 5  # cancels job if it runs longer than 5 minutes
     steps:
       - name: Checkout
