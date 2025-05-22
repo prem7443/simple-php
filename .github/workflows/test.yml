@@ -18,16 +18,8 @@ jobs:
     steps:
     - id: vars
       run: |
-        case "${{ github.event.inputs.name }}" in
-          Dev)
-            echo "host=${{ secrets.DEV_SSH_HOST }}"       >> $GITHUB_OUTPUT
-            echo "user=${{ secrets.DEV_SSH_USER }}"   >> $GITHUB_OUTPUT
-            echo "path=${{ vars.DEV1_APP_PATH }}"        >> $GITHUB_OUTPUT ;;
-          Alpha)
-            echo "host=${{ secrets.DEV_SSH_HOST }}"     >> $GITHUB_OUTPUT
-            echo "user=${{ secrets.DEV_SSH_USER }}" >> $GITHUB_OUTPUT
-            echo "path=${{ vars.DEV_APP_PATH }}"      >> $GITHUB_OUTPUT ;;
-        esac
+        case "${{ github.event.inputs.name }}"
+           
  
     - name: Deploy to Environment
       run: |
